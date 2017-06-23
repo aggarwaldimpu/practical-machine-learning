@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview
 
-The objective of this project is to predict human activity by applying machine learning algorithms.
+The objective of this project is to predict human activity by applying **machine learning** algorithms.
 
 ## Data Processing
 
