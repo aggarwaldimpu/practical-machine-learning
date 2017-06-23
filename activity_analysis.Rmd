@@ -1,0 +1,77 @@
+---
+title: "Predictive Analysis of Human Activity"
+author: "Jiachang (Ernest) Xu"
+date: "6/23/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+## Data Processing
+
+First of all, before we do anything, we shall set the seed to 1024 for the purpose of reproducibility. Then, we shall download the training and testing datasets to the **./data** folder.
+
+```{r download data, echo=TRUE}
+## set the seed for reproducibility
+set.seed(1024)
+## download training data
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", 
+              destfile = "./data/training.csv")
+## download testing data
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", 
+              destfile = "./data/testing.csv")
+```
+
+After the training and testing datasets are downloaded, we shall read the datasets into R ready for data cleaning.
+
+```{r read data from files, echo=TRUE}
+## load the full training data reday for data slicing
+data <- read.csv(file = "./data/training.csv")
+## loading 20 cases of testing data for validation
+validation <- read.csv(file = "./data/testing.csv")
+```
+
+## Data Cleaning
+
+Before actually starting the process of data cleaning, let's take a close look at **data** first.
+
+```{r take a look at raw data, echo=TRUE}
+class(data$classe)
+levels(data$classe)
+dim(data)
+head(data)
+```
+
+We can see from the output above that there exist a lot of empty spaces and NA values. Let's identify the level of NA value in **data**.
+
+```{r identify NA level, echo=TRUE}
+## identify NA level
+NA.levels <- unique(apply(data, 2,function(x){sum(is.na(x))}))
+NA.number <- dim(data)[1]-NA.levels[2]
+NA.non <- NA.number/dim(data)[1]
+sprintf("%1.2f%%", 100*NA.non)
+```
+
+Then, we can replace empty spaces and div0 to NA
+
+```{r replace empty spaces, echo=TRUE}
+data[data == ""] <- NA
+data[data == "#DIV/0!"] <- NA
+data[data == "<NA>"] <- NA
+```
+
+Now, there are no empty spaces or irregular values in **data**, we shall spitt **data** to **train.data** and **test.data**
+
+```{r spit data, echo=TRUE}
+require(caret)
+inTrain <- createDataPartition(y = data$classe, p = 0.75, list = FALSE)
+train.data <- data[inTrain, ]
+test.data <- data[-inTrain, ]
+dim(train.data)
+```
