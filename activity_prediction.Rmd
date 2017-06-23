@@ -1,5 +1,5 @@
 ---
-title: "Predictive Analysis of Human Activity"
+title: "Prediction of Human Activity by Applying Machine Learning Algorithms"
 author: "Jiachang (Ernest) Xu"
 date: "6/23/2017"
 output:
@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Overview
+
+The objective of this project is to predict human activity by applying machine learning algorithms.
 
 ## Data Processing
 
