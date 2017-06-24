@@ -11,11 +11,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Overview
+## Sectiong 1: Synopsis
 
 The objective of this project is to predict human activity by applying **machine learning** algorithms.
 
-## Data Processing
+## Section 2: Data Processing
 
 First of all, before we do anything, we shall set the seed to 1024 for the purpose of reproducibility. Then, we shall download the training and testing datasets to the **./data** folder.
 
@@ -23,11 +23,16 @@ First of all, before we do anything, we shall set the seed to 1024 for the purpo
 ## set the seed for reproducibility
 set.seed(1024)
 ## download training data
-download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", 
-              destfile = "./data/training.csv")
+if (!file.exists("./data/training.csv")) {
+    download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", 
+                  destfile = "./data/training.csv")
+}
+
 ## download testing data
-download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", 
-              destfile = "./data/testing.csv")
+if (!file.exists("./data/testing.csv")) {
+    download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", 
+                  destfile = "./data/testing.csv")
+}
 ```
 
 After the training and testing datasets are downloaded, we shall read the datasets into R ready for data cleaning.
@@ -39,7 +44,7 @@ data <- read.csv(file = "./data/training.csv")
 validation <- read.csv(file = "./data/testing.csv")
 ```
 
-## Data Cleaning
+## Section 3: Data Cleaning
 
 Before actually starting the process of data cleaning, let's take a close look at **data** first.
 
@@ -54,7 +59,7 @@ We can see from the output above that there exist a lot of empty spaces and NA v
 
 ```{r identify NA level, echo=TRUE}
 ## identify NA level
-NA.levels <- unique(apply(data, 2,function(x){sum(is.na(x))}))
+NA.levels <- unique(apply(data, 2, function(x) {sum(is.na(x))} ))
 NA.number <- dim(data)[1]-NA.levels[2]
 NA.non <- NA.number/dim(data)[1]
 sprintf("%1.2f%%", 100*NA.non)
@@ -77,3 +82,49 @@ train.data <- data[inTrain, ]
 test.data <- data[-inTrain, ]
 dim(train.data)
 ```
+
+We split **train.data** to old window rows (non-aggregated).
+
+```{r split train.data to old window rows (non-aggregated), echo=TRUE}
+## select non-aggregated sensor data
+train.old.window <- train.data[which(train.data$new_window == "no"), ]
+## sensor data without NA columns (summary data)
+train.old.window <- train.data[!colSums(is.na(train.data)) > 0]
+## test NA purity
+sum(is.na(train.old.window))
+```
+
+We split **train.data** and **test.data** to new window rows (aggregated), and remove NA columns and rows from the new training and testing data frames.
+
+```{r split train.data and test.data to new window rows (aggregated)}
+## select aggregated sensor data
+train.new.window <- train.data[which(train.data$new_window == "yes"), ]
+test.new.window <- test.data[which(test.data$new_window == "yes"), ]
+
+## remove full NA columns
+train.new.half <- subset(train.new.window, 
+                          select = -c(kurtosis_picth_belt, kurtosis_yaw_belt, kurtosis_picth_arm, 
+                                      kurtosis_yaw_arm, skewness_pitch_arm, kurtosis_yaw_dumbbell,
+                                      skewness_yaw_dumbbell, skewness_yaw_forearm, kurtosis_yaw_forearm, 
+                                      skewness_yaw_belt, skewness_roll_belt.1))
+test.new.half <- subset(test.new.window, 
+                         select = -c(kurtosis_picth_belt, kurtosis_yaw_belt, kurtosis_picth_arm, 
+                                     kurtosis_yaw_arm, skewness_pitch_arm, kurtosis_yaw_dumbbell,
+                                     skewness_yaw_dumbbell, skewness_yaw_forearm, kurtosis_yaw_forearm, 
+                                     skewness_yaw_belt, skewness_roll_belt.1))
+
+## remove NA rows from training data
+train.new.clean <- train.new.half[complete.cases(train.new.half), ]
+sum(is.na(train.new.clean))
+
+## remove NA rows from testing data
+test.new.clean <- test.new.half[complete.cases(test.new.half), ]
+sum(is.na(test.new.clean))
+```
+
+## Section 4: Machine Learning
+
+
+
+## Section 5: Conclusion
+

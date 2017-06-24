@@ -123,36 +123,41 @@ $(document).ready(function () {
 </div>
 
 
-<div id="overview" class="section level2">
-<h2>Overview</h2>
-<p>The objective of this project is to predict human activity by applying machine learning algorithms.</p>
+<div id="sectiong-1-synopsis" class="section level2">
+<h2>Sectiong 1: Synopsis</h2>
+<p>The objective of this project is to predict human activity by applying <strong>machine learning</strong> algorithms.</p>
 </div>
-<div id="data-processing" class="section level2">
-<h2>Data Processing</h2>
+<div id="section-2-data-processing" class="section level2">
+<h2>Section 2: Data Processing</h2>
 <p>First of all, before we do anything, we shall set the seed to 1024 for the purpose of reproducibility. Then, we shall download the training and testing datasets to the <strong>./data</strong> folder.</p>
 <pre class="r"><code>## set the seed for reproducibility
 set.seed(1024)
 ## download training data
-download.file(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;, 
-              destfile = &quot;./data/training.csv&quot;)
+if (!file.exists(&quot;./data/training.csv&quot;)) {
+    download.file(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;, 
+                  destfile = &quot;./data/training.csv&quot;)
+}
+
 ## download testing data
-download.file(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;, 
-              destfile = &quot;./data/testing.csv&quot;)</code></pre>
+if (!file.exists(&quot;./data/testing.csv&quot;)) {
+    download.file(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;, 
+                  destfile = &quot;./data/testing.csv&quot;)
+}</code></pre>
 <p>After the training and testing datasets are downloaded, we shall read the datasets into R ready for data cleaning.</p>
 <pre class="r"><code>## load the full training data reday for data slicing
 data &lt;- read.csv(file = &quot;./data/training.csv&quot;)
 ## loading 20 cases of testing data for validation
 validation &lt;- read.csv(file = &quot;./data/testing.csv&quot;)</code></pre>
 </div>
-<div id="data-cleaning" class="section level2">
-<h2>Data Cleaning</h2>
+<div id="section-3-data-cleaning" class="section level2">
+<h2>Section 3: Data Cleaning</h2>
 <p>Before actually starting the process of data cleaning, let’s take a close look at <strong>data</strong> first.</p>
 <pre class="r"><code>class(data$classe)</code></pre>
 <pre><code>## [1] &quot;factor&quot;</code></pre>
 <pre class="r"><code>levels(data$classe)</code></pre>
-<pre><code>## [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; &quot;E&quot;</code></pre>
+<pre><code>## [1] &quot;&quot;  &quot;A&quot;</code></pre>
 <pre class="r"><code>dim(data)</code></pre>
-<pre><code>## [1] 19622   160</code></pre>
+<pre><code>## [1] 2350  160</code></pre>
 <pre class="r"><code>head(data)</code></pre>
 <pre><code>##   X user_name raw_timestamp_part_1 raw_timestamp_part_2   cvtd_timestamp
 ## 1 1  carlitos           1323084231               788290 05/12/2011 11:23
@@ -176,12 +181,12 @@ validation &lt;- read.csv(file = &quot;./data/testing.csv&quot;)</code></pre>
 ## 5                                                         
 ## 6                                                         
 ##   skewness_roll_belt skewness_roll_belt.1 skewness_yaw_belt max_roll_belt
-## 1                                                                      NA
-## 2                                                                      NA
-## 3                                                                      NA
-## 4                                                                      NA
-## 5                                                                      NA
-## 6                                                                      NA
+## 1                                                                    &lt;NA&gt;
+## 2                                                                    &lt;NA&gt;
+## 3                                                                    &lt;NA&gt;
+## 4                                                                    &lt;NA&gt;
+## 5                                                                    &lt;NA&gt;
+## 6                                                                    &lt;NA&gt;
 ##   max_picth_belt max_yaw_belt min_roll_belt min_pitch_belt min_yaw_belt
 ## 1             NA                         NA             NA             
 ## 2             NA                         NA             NA             
@@ -281,47 +286,47 @@ validation &lt;- read.csv(file = &quot;./data/testing.csv&quot;)</code></pre>
 ## 5          NA                 NA                  NA                NA
 ## 6          NA                 NA                  NA                NA
 ##   roll_dumbbell pitch_dumbbell yaw_dumbbell kurtosis_roll_dumbbell
-## 1      13.05217      -70.49400    -84.87394                       
-## 2      13.13074      -70.63751    -84.71065                       
-## 3      12.85075      -70.27812    -85.14078                       
-## 4      13.43120      -70.39379    -84.87363                       
-## 5      13.37872      -70.42856    -84.85306                       
-## 6      13.38246      -70.81759    -84.46500                       
+## 1      13.05217      -70.49400    -84.87394                     NA
+## 2      13.13074      -70.63751    -84.71065                     NA
+## 3      12.85075      -70.27812    -85.14078                     NA
+## 4      13.43120      -70.39379    -84.87363                     NA
+## 5      13.37872      -70.42856    -84.85306                     NA
+## 6      13.38246      -70.81759    -84.46500                     NA
 ##   kurtosis_picth_dumbbell kurtosis_yaw_dumbbell skewness_roll_dumbbell
-## 1                                                                     
-## 2                                                                     
-## 3                                                                     
-## 4                                                                     
-## 5                                                                     
-## 6                                                                     
+## 1                      NA                                           NA
+## 2                      NA                                           NA
+## 3                      NA                                           NA
+## 4                      NA                                           NA
+## 5                      NA                                           NA
+## 6                      NA                                           NA
 ##   skewness_pitch_dumbbell skewness_yaw_dumbbell max_roll_dumbbell
-## 1                                                              NA
-## 2                                                              NA
-## 3                                                              NA
-## 4                                                              NA
-## 5                                                              NA
-## 6                                                              NA
+## 1                      NA                                      NA
+## 2                      NA                                      NA
+## 3                      NA                                      NA
+## 4                      NA                                      NA
+## 5                      NA                                      NA
+## 6                      NA                                      NA
 ##   max_picth_dumbbell max_yaw_dumbbell min_roll_dumbbell min_pitch_dumbbell
-## 1                 NA                                 NA                 NA
-## 2                 NA                                 NA                 NA
-## 3                 NA                                 NA                 NA
-## 4                 NA                                 NA                 NA
-## 5                 NA                                 NA                 NA
-## 6                 NA                                 NA                 NA
+## 1                 NA               NA                NA                 NA
+## 2                 NA               NA                NA                 NA
+## 3                 NA               NA                NA                 NA
+## 4                 NA               NA                NA                 NA
+## 5                 NA               NA                NA                 NA
+## 6                 NA               NA                NA                 NA
 ##   min_yaw_dumbbell amplitude_roll_dumbbell amplitude_pitch_dumbbell
-## 1                                       NA                       NA
-## 2                                       NA                       NA
-## 3                                       NA                       NA
-## 4                                       NA                       NA
-## 5                                       NA                       NA
-## 6                                       NA                       NA
+## 1               NA                      NA                       NA
+## 2               NA                      NA                       NA
+## 3               NA                      NA                       NA
+## 4               NA                      NA                       NA
+## 5               NA                      NA                       NA
+## 6               NA                      NA                       NA
 ##   amplitude_yaw_dumbbell total_accel_dumbbell var_accel_dumbbell
-## 1                                          37                 NA
-## 2                                          37                 NA
-## 3                                          37                 NA
-## 4                                          37                 NA
-## 5                                          37                 NA
-## 6                                          37                 NA
+## 1                     NA                   37                 NA
+## 2                     NA                   37                 NA
+## 3                     NA                   37                 NA
+## 4                     NA                   37                 NA
+## 5                     NA                   37                 NA
+## 6                     NA                   37                 NA
 ##   avg_roll_dumbbell stddev_roll_dumbbell var_roll_dumbbell
 ## 1                NA                   NA                NA
 ## 2                NA                   NA                NA
@@ -436,11 +441,11 @@ validation &lt;- read.csv(file = &quot;./data/testing.csv&quot;)</code></pre>
 ## 6               -9              660              478      A</code></pre>
 <p>We can see from the output above that there exist a lot of empty spaces and NA values. Let’s identify the level of NA value in <strong>data</strong>.</p>
 <pre class="r"><code>## identify NA level
-NA.levels &lt;- unique(apply(data, 2,function(x){sum(is.na(x))}))
+NA.levels &lt;- unique(apply(data, 2, function(x) {sum(is.na(x))} ))
 NA.number &lt;- dim(data)[1]-NA.levels[2]
 NA.non &lt;- NA.number/dim(data)[1]
 sprintf(&quot;%1.2f%%&quot;, 100*NA.non)</code></pre>
-<pre><code>## [1] &quot;2.07%&quot;</code></pre>
+<pre><code>## [1] &quot;2.30%&quot;</code></pre>
 <p>Then, we can replace empty spaces and div0 to NA</p>
 <pre class="r"><code>data[data == &quot;&quot;] &lt;- NA
 data[data == &quot;#DIV/0!&quot;] &lt;- NA
@@ -450,11 +455,52 @@ data[data == &quot;&lt;NA&gt;&quot;] &lt;- NA</code></pre>
 <pre><code>## Loading required package: caret</code></pre>
 <pre><code>## Loading required package: lattice</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
-<pre class="r"><code>inTrain &lt;- createDataPartition(y = data$classe, p = 0.75, list = FALSE)
-train.data &lt;- data[inTrain, ]
+<pre class="r"><code>inTrain &lt;- createDataPartition(y = data$classe, p = 0.75, list = FALSE)</code></pre>
+<pre><code>## Warning in createDataPartition(y = data$classe, p = 0.75, list = FALSE):
+## Some classes have no records ( ) and these will be ignored</code></pre>
+<pre class="r"><code>train.data &lt;- data[inTrain, ]
 test.data &lt;- data[-inTrain, ]
 dim(train.data)</code></pre>
-<pre><code>## [1] 14718   160</code></pre>
+<pre><code>## [1] 1763  160</code></pre>
+<p>We split <strong>train.data</strong> to old window rows (non-aggregated).</p>
+<pre class="r"><code>## select non-aggregated sensor data
+train.old.window &lt;- train.data[which(train.data$new_window == &quot;no&quot;), ]
+## sensor data without NA columns (summary data)
+train.old.window &lt;- train.data[!colSums(is.na(train.data)) &gt; 0]
+## test NA purity
+sum(is.na(train.old.window))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>We split <strong>train.data</strong> and <strong>test.data</strong> to new window rows (aggregated), and remove NA columns and rows from the new training and testing data frames.</p>
+<pre class="r"><code>## select aggregated sensor data
+train.new.window &lt;- train.data[which(train.data$new_window == &quot;yes&quot;), ]
+test.new.window &lt;- test.data[which(test.data$new_window == &quot;yes&quot;), ]
+
+## remove full NA columns
+train.new.half &lt;- subset(train.new.window, 
+                          select = -c(kurtosis_picth_belt, kurtosis_yaw_belt, kurtosis_picth_arm, 
+                                      kurtosis_yaw_arm, skewness_pitch_arm, kurtosis_yaw_dumbbell,
+                                      skewness_yaw_dumbbell, skewness_yaw_forearm, kurtosis_yaw_forearm, 
+                                      skewness_yaw_belt, skewness_roll_belt.1))
+test.new.half &lt;- subset(test.new.window, 
+                         select = -c(kurtosis_picth_belt, kurtosis_yaw_belt, kurtosis_picth_arm, 
+                                     kurtosis_yaw_arm, skewness_pitch_arm, kurtosis_yaw_dumbbell,
+                                     skewness_yaw_dumbbell, skewness_yaw_forearm, kurtosis_yaw_forearm, 
+                                     skewness_yaw_belt, skewness_roll_belt.1))
+
+## remove NA rows from training data
+train.new.clean &lt;- train.new.half[complete.cases(train.new.half), ]
+sum(is.na(train.new.clean))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>## remove NA rows from testing data
+test.new.clean &lt;- test.new.half[complete.cases(test.new.half), ]
+sum(is.na(test.new.clean))</code></pre>
+<pre><code>## [1] 0</code></pre>
+</div>
+<div id="section-4-machine-learning" class="section level2">
+<h2>Section 4: Machine Learning</h2>
+</div>
+<div id="section-5-conclusion" class="section level2">
+<h2>Section 5: Conclusion</h2>
 </div>
 
 
