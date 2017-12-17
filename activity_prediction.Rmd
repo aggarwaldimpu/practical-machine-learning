@@ -9,19 +9,23 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(caret)
+library(rpart)
+library(randomForest)
+library(e1071)
 ```
 
 ## Sectiong 1: Synopsis
 
 The objective of this project is to predict human activity by applying **machine learning** algorithms.
 
-## Section 2: Data Processing
+## Section 2: Data Loading
 
 First of all, before we do anything, we shall set the seed to 1024 for the purpose of reproducibility. Then, we shall download the training and testing datasets to the **./data** folder.
 
 ```{r download data, echo=TRUE}
 ## set the seed for reproducibility
-set.seed(1024)
+set.seed(22)
 ## download training data
 if (!file.exists("./data/training.csv")) {
     download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", 
@@ -52,7 +56,6 @@ Before actually starting the process of data cleaning, let's take a close look a
 class(data$classe)
 levels(data$classe)
 dim(data)
-head(data)
 ```
 
 We can see from the output above that there exist a lot of empty spaces and NA values. Let's identify the level of NA value in **data**.
@@ -76,55 +79,79 @@ data[data == "<NA>"] <- NA
 Now, there are no empty spaces or irregular values in **data**, we shall spitt **data** to **train.data** and **test.data**
 
 ```{r spit data, echo=TRUE}
-require(caret)
-inTrain <- createDataPartition(y = data$classe, p = 0.75, list = FALSE)
-train.data <- data[inTrain, ]
-test.data <- data[-inTrain, ]
-dim(train.data)
+set.seed(22)
+traindex <- createDataPartition(data$classe,p = 0.8,list = FALSE)
+train <- data[traindex,]
+test <- data[-traindex,]
 ```
 
 We split **train.data** to old window rows (non-aggregated).
 
 ```{r split train.data to old window rows (non-aggregated), echo=TRUE}
 ## select non-aggregated sensor data
-train.old.window <- train.data[which(train.data$new_window == "no"), ]
+train_raw <- train[which(train$new_window == "no"),]
 ## sensor data without NA columns (summary data)
-train.old.window <- train.data[!colSums(is.na(train.data)) > 0]
+train_raw <- train[!colSums(is.na(train)) > 0]
 ## test NA purity
-sum(is.na(train.old.window))
+sum(is.na(train_raw))
 ```
 
 We split **train.data** and **test.data** to new window rows (aggregated), and remove NA columns and rows from the new training and testing data frames.
 
 ```{r split train.data and test.data to new window rows (aggregated)}
-## select aggregated sensor data
-train.new.window <- train.data[which(train.data$new_window == "yes"), ]
-test.new.window <- test.data[which(test.data$new_window == "yes"), ]
+#Splitting data to new window rows (aggregated data)
+train_sum <- train[which(train$new_window == "yes"),]
+test_sum <- test[which(test$new_window == "yes"),]
 
-## remove full NA columns
-train.new.half <- subset(train.new.window, 
-                          select = -c(kurtosis_picth_belt, kurtosis_yaw_belt, kurtosis_picth_arm, 
-                                      kurtosis_yaw_arm, skewness_pitch_arm, kurtosis_yaw_dumbbell,
-                                      skewness_yaw_dumbbell, skewness_yaw_forearm, kurtosis_yaw_forearm, 
-                                      skewness_yaw_belt, skewness_roll_belt.1))
-test.new.half <- subset(test.new.window, 
-                         select = -c(kurtosis_picth_belt, kurtosis_yaw_belt, kurtosis_picth_arm, 
-                                     kurtosis_yaw_arm, skewness_pitch_arm, kurtosis_yaw_dumbbell,
-                                     skewness_yaw_dumbbell, skewness_yaw_forearm, kurtosis_yaw_forearm, 
-                                     skewness_yaw_belt, skewness_roll_belt.1))
+#Removing full NA columns
+train_sum_clean <- subset(train_sum, select=-c(kurtosis_picth_belt,kurtosis_yaw_belt,kurtosis_picth_arm,kurtosis_yaw_arm,skewness_pitch_arm,kurtosis_yaw_dumbbell,skewness_yaw_dumbbell,skewness_yaw_forearm,kurtosis_yaw_forearm,skewness_yaw_belt,skewness_roll_belt.1))
 
-## remove NA rows from training data
-train.new.clean <- train.new.half[complete.cases(train.new.half), ]
-sum(is.na(train.new.clean))
+test_sum_clean <- subset(test_sum, select=-c(kurtosis_picth_belt,kurtosis_yaw_belt,kurtosis_picth_arm,kurtosis_yaw_arm,skewness_pitch_arm,kurtosis_yaw_dumbbell,skewness_yaw_dumbbell,skewness_yaw_forearm,kurtosis_yaw_forearm,skewness_yaw_belt,skewness_roll_belt.1))
 
-## remove NA rows from testing data
-test.new.clean <- test.new.half[complete.cases(test.new.half), ]
-sum(is.na(test.new.clean))
+#Removing NA rows
+train_done <- train_sum_clean[complete.cases(train_sum_clean),]
+sum(is.na(train_done))
+test_done <- test_sum_clean[complete.cases(test_sum_clean),]
+sum(is.na(test_done))
 ```
 
 ## Section 4: Machine Learning
 
+```{r model 1, echo=TRUE}
+model1 <- randomForest(classe ~. , data=train_raw[,-c(1:7)], method="class")
+model1
+pred_test1 <- predict(model1, test)
+pred_train1 <- predict(model1, train)
+confusionMatrix(pred_test1, test$classe)
+confusionMatrix(pred_train1, train$classe)
+```
 
+```{r model 2, eval=FALSE, include=FALSE}
+features2 <- cfs(classe~.,train.old.window[,-c(1:7)])
+formula2 <- as.simple.formula(features2, "classe")
+fitControl <- trainControl(method = "cv", number = 3, repeats = 3)
+model2 <- train(formula2, method = "rf", data =train.old.window, trControl = fitControl)
+model2
+pred_test2 <- predict(model2, test.data)
+pred_train2 <- predict(model2, train.data)
+confusionMatrix(pred_test2, test.data$classe)
+confusionMatrix(pred_train2, train.data$classe)
+```
+
+```{r model 3, eval=FALSE, include=FALSE}
+features3 <- cfs(classe~.,train_done[,-c(1:7)])
+formula3 <- as.simple.formula(features3, "classe")
+model3 <- train(formula3, method = "rf", data =train.new.clean, trControl = fitControl)
+model3
+pred_test3 <- predict(model3, test.new.clean)
+pred_train3 <- predict(model3, train.new.clean)
+confusionMatrix(pred_test3, test.new.clean$classe)
+confusionMatrix(pred_train3, train.new.clean$classe)
+```
 
 ## Section 5: Conclusion
+
+```{r prediction, echo=TRUE}
+predict(model1,validation)
+```
 
