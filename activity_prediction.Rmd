@@ -76,7 +76,7 @@ data[data == "#DIV/0!"] <- NA
 data[data == "<NA>"] <- NA
 ```
 
-Now, there are no empty spaces or irregular values in **data**, we shall spitt **data** to **train.data** and **test.data**
+Now, there are no empty spaces or irregular values in **data**, we shall spitt **data** to **train** and **test**
 
 ```{r spit data, echo=TRUE}
 set.seed(22)
@@ -85,7 +85,7 @@ train <- data[traindex,]
 test <- data[-traindex,]
 ```
 
-We split **train.data** to old window rows (non-aggregated).
+We split **train** to old window rows (non-aggregated).
 
 ```{r split train.data to old window rows (non-aggregated), echo=TRUE}
 ## select non-aggregated sensor data
@@ -96,7 +96,7 @@ train_raw <- train[!colSums(is.na(train)) > 0]
 sum(is.na(train_raw))
 ```
 
-We split **train.data** and **test.data** to new window rows (aggregated), and remove NA columns and rows from the new training and testing data frames.
+We split **train** and **test** to new window rows (aggregated), and remove NA columns and rows from the new training and testing data frames.
 
 ```{r split train.data and test.data to new window rows (aggregated)}
 #Splitting data to new window rows (aggregated data)
@@ -116,6 +116,8 @@ sum(is.na(test_done))
 ```
 
 ## Section 4: Machine Learning
+
+I use random forest to build my model, because sensor data might have noise. It use bootstrap resampling for crossvalidation, and achieve a **sample error of 0.43%**
 
 ```{r model 1, echo=TRUE}
 model1 <- randomForest(classe ~. , data=train_raw[,-c(1:7)], method="class")

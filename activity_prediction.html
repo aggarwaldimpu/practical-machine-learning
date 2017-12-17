@@ -169,12 +169,12 @@ sprintf(&quot;%1.2f%%&quot;, 100*NA.non)</code></pre>
 <pre class="r"><code>data[data == &quot;&quot;] &lt;- NA
 data[data == &quot;#DIV/0!&quot;] &lt;- NA
 data[data == &quot;&lt;NA&gt;&quot;] &lt;- NA</code></pre>
-<p>Now, there are no empty spaces or irregular values in <strong>data</strong>, we shall spitt <strong>data</strong> to <strong>train.data</strong> and <strong>test.data</strong></p>
+<p>Now, there are no empty spaces or irregular values in <strong>data</strong>, we shall spitt <strong>data</strong> to <strong>train</strong> and <strong>test</strong></p>
 <pre class="r"><code>set.seed(22)
 traindex &lt;- createDataPartition(data$classe,p = 0.8,list = FALSE)
 train &lt;- data[traindex,]
 test &lt;- data[-traindex,]</code></pre>
-<p>We split <strong>train.data</strong> to old window rows (non-aggregated).</p>
+<p>We split <strong>train</strong> to old window rows (non-aggregated).</p>
 <pre class="r"><code>## select non-aggregated sensor data
 train_raw &lt;- train[which(train$new_window == &quot;no&quot;),]
 ## sensor data without NA columns (summary data)
@@ -182,7 +182,7 @@ train_raw &lt;- train[!colSums(is.na(train)) &gt; 0]
 ## test NA purity
 sum(is.na(train_raw))</code></pre>
 <pre><code>## [1] 0</code></pre>
-<p>We split <strong>train.data</strong> and <strong>test.data</strong> to new window rows (aggregated), and remove NA columns and rows from the new training and testing data frames.</p>
+<p>We split <strong>train</strong> and <strong>test</strong> to new window rows (aggregated), and remove NA columns and rows from the new training and testing data frames.</p>
 <pre class="r"><code>#Splitting data to new window rows (aggregated data)
 train_sum &lt;- train[which(train$new_window == &quot;yes&quot;),]
 test_sum &lt;- test[which(test$new_window == &quot;yes&quot;),]
@@ -202,6 +202,7 @@ sum(is.na(test_done))</code></pre>
 </div>
 <div id="section-4-machine-learning" class="section level2">
 <h2>Section 4: Machine Learning</h2>
+<p>I use random forest to build my model, because sensor data might have noise. It use bootstrap resampling for crossvalidation, and achieve a <strong>sample error of 0.43%</strong></p>
 <pre class="r"><code>model1 &lt;- randomForest(classe ~. , data=train_raw[,-c(1:7)], method=&quot;class&quot;)
 model1</code></pre>
 <pre><code>## 
